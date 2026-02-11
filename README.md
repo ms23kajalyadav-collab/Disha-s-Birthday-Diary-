@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disha's 20th Birthday | Prettymoonchild</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React and ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,700;0,800;1,400;1,800&display=swap');
+        
+        body { 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #FFF5F8;
+            overflow-x: hidden;
+        }
+
+        /* High-Quality Image Rendering */
+        img {
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+            filter: contrast(1.05) saturate(1.1);
+        }
+
+        @keyframes float-up {
+          0% { transform: translateY(0) scale(0.5); opacity: 1; }
+          100% { transform: translateY(-120px) scale(1.5); opacity: 0; }
+        }
+        @keyframes confetti-fall {
+          0% { transform: translateY(-10vh) translateX(0) rotate(0deg); opacity: 1; }
+          25% { transform: translateY(20vh) translateX(20px) rotate(90deg); }
+          50% { transform: translateY(50vh) translateX(-20px) rotate(180deg); }
+          75% { transform: translateY(80vh) translateX(20px) rotate(270deg); }
+          100% { transform: translateY(110vh) translateX(0) rotate(360deg); opacity: 0; }
+        }
+        @keyframes heart-pulse {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.1); }
+        }
+        @keyframes flicker {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.8; transform: scale(0.9) translateY(2px); }
+        }
+        @keyframes pop-out {
+          0% { transform: scale(0); opacity: 0; }
+          50% { transform: scale(1.2); opacity: 1; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .animate-float-up { animation: float-up 1.5s ease-out forwards; }
+        .animate-confetti-fall { animation: confetti-fall 4s ease-in-out forwards; }
+        .animate-spin-slow { animation: spin 15s linear infinite; }
+        .animate-pulse-slow { animation: heart-pulse 3s ease-in-out infinite; }
+        .animate-flicker { animation: flicker 0.1s infinite; }
+        .animate-pop-out { animation: pop-out 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .polaroid-shadow {
+            box-shadow: 0 10px 25px -5px rgba(255, 182, 193, 0.4), 0 8px 10px -6px rgba(255, 182, 193, 0.4);
+        }
+
+        .candle-flame {
+            width: 12px;
+            height: 20px;
+            background: linear-gradient(to bottom, #ffeb3b, #ff9800);
+            border-radius: 50% 50% 20% 20%;
+            position: absolute;
+            top: -22px;
+            left: 50%;
+            transform: translateX(-50%);
+            filter: blur(0.5px);
+            box-shadow: 0 0 15px #ff9800;
+        }
+
+        .pixel-star {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: white;
+            box-shadow: 6px 0 white, -6px 0 white, 0 6px white, 0 -6px white;
+            opacity: 0.6;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useCallback, useRef } = React;
+        
+        const LucideIcon = ({ name, size = 24, className = "", fill = "none" }) => {
+            const iconRef = useRef(null);
+            useEffect(() => {
+                if (iconRef.current && window.lucide) {
+                    window.lucide.createIcons({
+                        attrs: {
+                            stroke: "currentColor",
+                            "stroke-width": 2,
+                            "stroke-linecap": "round",
+                            "stroke-linejoin": "round",
+                            fill: fill,
+                            width: size,
+                            height: size
+                        }
+                    });
+                }
+            }, [name, size, fill]);
+
+            return (
+                <i 
+                    ref={iconRef} 
+                    data-lucide={name} 
+                    className={className}
+                    style={{ width: size, height: size, display: 'inline-block' }}
+                />
+            );
+        };
+
+        const App = () => {
+          const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, mins: 0, secs: 0 });
+          const [popups, setPopups] = useState([]);
+          const [activeTab, setActiveTab] = useState('home');
+          const [confetti, setConfetti] = useState([]);
+          const [isLit, setIsLit] = useState(false);
+          const [isBlown, setIsBlown] = useState(false);
+          const confettiIdCounter = useRef(0);
+
+          const images = [
+            "https://i.postimg.cc/64yhWhHD/Whats-App-Image-2026-02-03-at-9-00-32-PM.jpg",
+            "https://i.postimg.cc/7GBVrRNK/Whats-App-Image-2026-02-03-at-9-02-34-PM.jpg",
+            "https://i.postimg.cc/xJsRVZPM/Whats-App-Image-2026-02-03-at-9-02-35-PM.jpg",
+            "https://i.postimg.cc/dkWBcf9B/Whats-App-Image-2026-02-03-at-9-02-35-PM-(1).jpg",
+            "https://i.postimg.cc/hzCrRY0C/Whats-App-Image-2026-02-03-at-9-02-35-PM-(2).jpg",
+            "https://i.postimg.cc/4Kgw6Vd5/Whats-App-Image-2026-02-03-at-9-02-35-PM-(3).jpg",
+            "https://i.postimg.cc/QB3SQ1tW/Whats-App-Image-2026-02-03-at-9-02-36-PM-(1).jpg",
+            "https://i.postimg.cc/KKBwFmKr/Whats-App-Image-2026-02-03-at-9-02-36-PM-(10).jpg",
+            "https://i.postimg.cc/Z04tbvxv/Whats-App-Image-2026-02-03-at-9-02-36-PM-(11).jpg"
+          ];
+
+          const kidImages = [
+            "https://i.postimg.cc/kD6v0mks/Whats-App-Image-2026-02-11-at-7-34-48-PM.jpg",
+            "https://i.postimg.cc/kRbNKQQg/Whats-App-Image-2026-02-11-at-7-34-48-PM-(1).jpg",
+            "https://i.postimg.cc/XBCKdff3/Whats-App-Image-2026-02-11-at-7-34-50-PM.jpg",
+            "https://i.postimg.cc/zbMSytR6/Whats-App-Image-2026-02-11-at-7-34-50-PM-(1).jpg",
+            "https://i.postimg.cc/zb3FXZ3S/Whats-App-Image-2026-02-11-at-7-34-50-PM-(2).jpg",
+            "https://i.postimg.cc/Q9PkF4Wp/Whats-App-Image-2026-02-11-at-7-34-51-PM.jpg",
+            "https://i.postimg.cc/sQ89M6Z8/Whats-App-Image-2026-02-11-at-7-34-51-PM-(1).jpg",
+            "https://i.postimg.cc/Z9wLSKbg/Whats-App-Image-2026-02-11-at-7-34-51-PM-(2).jpg"
+          ];
+
+          const triggerConfetti = useCallback((isInitial = false) => {
+            const count = isInitial ? 400 : 80;
+            const newConfetti = [];
+            const colors = ['#FF69B4', '#FFD700', '#87CEEB', '#DDA0DD', '#98FB98', '#FFA07A', '#FFFFFF', '#6366f1'];
+            for (let i = 0; i < count; i++) {
+              newConfetti.push({
+                id: confettiIdCounter.current++,
+                x: Math.random() * 100,
+                y: isInitial ? (Math.random() * 100 + 100) : -10,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                angle: Math.random() * 360,
+                size: Math.random() * 12 + 6,
+                delay: Math.random() * 2,
+                type: Math.random() > 0.4 ? 'square' : 'circle'
+              });
+            }
+            setConfetti(prev => [...prev, ...newConfetti]);
+            setTimeout(() => {
+              setConfetti(prev => prev.filter(c => !newConfetti.find(nc => nc.id === c.id)));
+            }, 6000);
+          }, []);
+
+          useEffect(() => {
+            triggerConfetti(true);
+            const burst = setInterval(() => triggerConfetti(false), 10000);
+            return () => clearInterval(burst);
+          }, [triggerConfetti]);
+
+          useEffect(() => {
+            const target = new Date("February 12, 2026 00:00:00").getTime();
+            const timer = setInterval(() => {
+              const now = new Date().getTime();
+              const distance = target - now;
+              
+              if (distance <= 0) {
+                setTimeLeft({ days: 0, hours: 0, mins: 0, secs: 0 });
+                if (!isBlown) {
+                    setIsBlown(true);
+                    setIsLit(false);
+                    triggerConfetti(true);
+                }
+                clearInterval(timer);
+              } else {
+                const secs = Math.floor((distance % (1000 * 60)) / 1000);
+                const mins = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                setTimeLeft({ days, hours, mins, secs });
+
+                if (days === 0 && hours === 0 && mins === 0 && secs <= 10 && secs > 0) {
+                    setIsLit(true);
+                }
+              }
+            }, 1000);
+            return () => clearInterval(timer);
+          }, [triggerConfetti, isBlown]);
+
+          const handleInteraction = (e) => {
+            const icons = ['❤️', '🎀', '⭐', '✨', '💖', '🍭', '🍓'];
+            const x = e.clientX || (e.touches && e.touches[0].clientX);
+            const y = e.clientY || (e.touches && e.touches[0].clientY);
+            if (!x) return;
+            const newPopup = { id: Math.random(), x, y, icon: icons[Math.floor(Math.random() * icons.length)] };
+            setPopups(prev => [...prev, newPopup]);
+            setTimeout(() => setPopups(prev => prev.filter(p => p.id !== newPopup.id)), 1500);
+          };
+
+          const navigateTo = (tab) => { 
+            window.scrollTo({ top: 0, behavior: 'smooth' }); 
+            setActiveTab(tab); 
+          };
+
+          const Polaroid = ({ src, rotation = "rotate-0", size = "w-32", caption = "" }) => (
+            <div className={`inline-block bg-white p-2 pb-5 polaroid-shadow border border-pink-50 ${rotation} ${size} transition-all duration-500 hover:rotate-0 hover:scale-110 z-10 shrink-0 hover:z-20 group`}>
+              <div className="aspect-[4/5] bg-gray-100 overflow-hidden mb-2 relative">
+                <img 
+                    src={src} 
+                    className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110" 
+                    alt="Memory" 
+                    loading="eager"
+                />
+                <div className="absolute inset-0 bg-pink-400/10 mix-blend-overlay opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              </div>
+              {caption && <p className="text-[10px] font-extrabold text-center text-pink-300 italic truncate uppercase tracking-tighter">{caption}</p>}
+            </div>
+          );
+
+          return (
+            <div className="min-h-screen bg-[#FFF5F8] text-[#333] selection:bg-pink-200 relative overflow-x-hidden cursor-crosshair" 
+                 onMouseDown={handleInteraction}
+                 onTouchStart={handleInteraction}>
+              
+              <div className="fixed inset-0 pointer-events-none opacity-40">
+                <div className="pixel-star top-[15%] left-[5%] animate-pulse"></div>
+                <div className="pixel-star top-[25%] right-[10%] animate-bounce"></div>
+                <div className="pixel-star bottom-[30%] left-[15%] animate-pulse"></div>
+                <div className="pixel-star bottom-[15%] right-[5%] animate-bounce"></div>
+                <div className="absolute top-[40%] left-[8%] text-pink-200 text-5xl animate-pulse-slow">♥</div>
+                <div className="absolute bottom-[20%] right-[12%] text-blue-200 text-4xl animate-bounce">⭐</div>
+              </div>
+
+              <div className="fixed inset-0 pointer-events-none z-[60] overflow-hidden">
+                {confetti.map(c => (
+                  <div key={c.id} className="absolute animate-confetti-fall"
+                    style={{ 
+                        left: `${c.x}%`, 
+                        top: `-20px`, 
+                        backgroundColor: c.color, 
+                        width: `${c.size}px`, 
+                        height: `${c.size}px`, 
+                        borderRadius: c.type === 'circle' ? '50%' : '2px', 
+                        animationDelay: `${c.delay}s`, 
+                        transform: `rotate(${c.angle}deg)`, 
+                        opacity: 0.9 
+                    }} 
+                  />
+                ))}
+              </div>
+
+              {popups.map(p => (
+                <div key={p.id} className="fixed pointer-events-none z-[100] text-4xl animate-float-up opacity-0 select-none" 
+                     style={{ left: p.x - 20, top: p.y - 20 }}>{p.icon}</div>
+              ))}
+
+              <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-white/80 backdrop-blur-2xl px-8 py-4 rounded-full shadow-[0_15px_50px_rgba(255,105,180,0.4)] z-50 flex gap-8 md:gap-14 border border-white/50">
+                <button onClick={() => navigateTo('home')} className={`transition-all duration-300 ${activeTab === 'home' ? 'text-pink-500 scale-125' : 'text-gray-300 hover:text-pink-300'}`}>
+                    <LucideIcon name="heart" size={28} fill={activeTab === 'home' ? "currentColor" : "none"}/>
+                </button>
+                <button onClick={() => navigateTo('about')} className={`transition-all duration-300 ${activeTab === 'about' ? 'text-blue-500 scale-125' : 'text-gray-300 hover:text-blue-300'}`}>
+                    <LucideIcon name="star" size={28} fill={activeTab === 'about' ? "currentColor" : "none"}/>
+                </button>
+                <button onClick={() => navigateTo('gallery')} className={`transition-all duration-300 ${activeTab === 'gallery' ? 'text-purple-500 scale-125' : 'text-gray-300 hover:text-purple-300'}`}>
+                    <LucideIcon name="image" size={28} fill={activeTab === 'gallery' ? "currentColor" : "none"}/>
+                </button>
+                <button onClick={() => navigateTo('childhood')} className={`transition-all duration-300 ${activeTab === 'childhood' ? 'text-orange-500 scale-125' : 'text-gray-300 hover:text-orange-300'}`}>
+                    <LucideIcon name="baby" size={28} fill={activeTab === 'childhood' ? "currentColor" : "none"}/>
+                </button>
+              </nav>
+
+              <header className="relative pt-20 pb-12 px-4 flex flex-col items-center text-center">
+                <div className="relative mb-10 animate-pop-out">
+                  <div className="absolute -inset-8 bg-gradient-to-tr from-yellow-200 via-pink-300 to-purple-400 rounded-full animate-spin-slow opacity-50 blur-3xl"></div>
+                  <div className="relative w-52 h-52 rounded-full overflow-hidden border-[10px] border-white shadow-2xl bg-white animate-pulse-slow">
+                    <img src={images[0]} alt="Disha" className="w-full h-full object-cover" />
+                  </div>
+                  <div className="absolute -bottom-4 -right-4 bg-pink-500 px-5 py-3 rounded-3xl shadow-xl border-4 border-white transform rotate-12"><span className="text-2xl font-black text-white">20</span></div>
+                </div>
+                
+                <h1 className="text-7xl md:text-[10rem] font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-pink-500 via-purple-600 to-blue-500 mb-4 animate-pop-out">DISHA.</h1>
+                <div className="flex items-center gap-3 mb-10 bg-white/40 px-6 py-3 rounded-full border border-white/60 backdrop-blur-md animate-pop-out">
+                    <LucideIcon name="instagram" size={20} className="text-pink-500" />
+                    <span className="font-black text-gray-700 tracking-[0.2em] text-sm uppercase">@prettymoonchild</span>
+                </div>
+
+                <div className="grid grid-cols-4 gap-4 md:gap-8 mb-12">
+                  {Object.entries(timeLeft).map(([label, value]) => (
+                    <div key={label} className="glass-card px-6 py-5 rounded-[2.5rem] shadow-2xl flex flex-col items-center min-w-[90px] border-white animate-pop-out">
+                      <span className="text-4xl font-black text-gray-800 tabular-nums">{value}</span>
+                      <span className="text-[10px] font-black uppercase text-pink-400 tracking-widest mt-1">{label}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="relative mb-16 flex flex-col items-center group">
+                    <div className="text-8xl relative transition-all duration-500 transform group-hover:scale-125 group-hover:rotate-6">
+                        🎂
+                        {isLit && (
+                            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-4 flex flex-col items-center">
+                                <div className="candle-flame animate-flicker"></div>
+                                <span className="absolute -top-16 text-lg font-black text-pink-500 animate-bounce uppercase tracking-widest drop-shadow-lg">Blow!</span>
+                            </div>
+                        )}
+                        {isBlown && (
+                            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-6 text-3xl animate-float-up opacity-0">💨</div>
+                        )}
+                    </div>
+                    {isBlown && (
+                        <div className="mt-8 glass-card px-10 py-3 rounded-full border border-pink-200 shadow-xl animate-pop-out">
+                            <p className="text-pink-600 font-black text-base uppercase tracking-widest">Make a wish, birthday girl! ✨</p>
+                        </div>
+                    )}
+                </div>
+              </header>
+
+              <main className="max-w-5xl mx-auto px-8 pb-40">
+                {activeTab === 'home' && (
+                  <div className="space-y-12 animate-in slide-in-from-bottom-8 duration-700">
+                    <div className="glass-card p-12 rounded-[4rem] shadow-2xl border-white relative overflow-hidden group">
+                      <div className="absolute -top-10 -right-10 p-12 opacity-5 group-hover:opacity-20 transition-all duration-500 rotate-12 group-hover:rotate-0 group-hover:scale-150">
+                        <LucideIcon name="quote" size={200}/>
+                      </div>
+                      <h2 className="text-4xl font-black mb-6 italic text-pink-500 flex items-center gap-3">
+                        <LucideIcon name="sparkles" fill="currentColor"/> Main Character Vibes
+                      </h2>
+                      <p className="text-2xl text-gray-700 leading-relaxed font-semibold italic">
+                        "Meet the resident <span className="text-pink-400 font-black underline decoration-yellow-300 decoration-4 underline-offset-4">Gua Sha cutie</span> whose makeup is always a masterpiece. From crafting handmade rituals to jamming to K-Pop, she's pure magic and the best friend anyone could ask for."
+                      </p>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-8">
+                      <div className="bg-yellow-50/80 backdrop-blur p-10 rounded-[3.5rem] border-4 border-yellow-100 shadow-xl flex flex-col items-center text-center transform hover:rotate-1 transition-all duration-500">
+                        <div className="flex -space-x-8 mb-8 scale-110">
+                            <Polaroid src={images[7]} rotation="rotate-[-8deg]" size="w-32" />
+                            <Polaroid src={images[5]} rotation="rotate-[10deg]" size="w-32" />
+                        </div>
+                        <h3 className="font-black text-yellow-800 text-2xl mb-3">The Iconic Duo ♾️</h3>
+                        <p className="text-sm text-yellow-700/60 font-black italic uppercase tracking-widest">"Crazy GF x Nonchalant BF" ENERGY ONLY.</p>
+                      </div>
+                      <div className="bg-purple-50/80 backdrop-blur p-10 rounded-[3.5rem] border-4 border-purple-100 shadow-xl flex flex-col items-center text-center transform hover:-rotate-1 transition-all duration-500">
+                        <div className="p-8 bg-white rounded-full text-purple-500 shadow-xl mb-6 animate-pulse-slow"><LucideIcon name="music" size={40} fill="currentColor"/></div>
+                        <h3 className="font-black text-purple-800 text-2xl mb-3">Playlist Queen 🎧</h3>
+                        <p className="text-sm text-purple-700/60 font-bold italic max-w-[200px]">"Filmy tracks, windows-down jams, and 2 AM K-pop sessions."</p>
+                      </div>
+                    </div>
+
+                    {/* New "Until 80" Section */}
+                    <div className="bg-gradient-to-br from-pink-500 to-purple-600 p-1 rounded-[4rem] shadow-[0_20px_60px_rgba(236,72,153,0.3)]">
+                        <div className="bg-white/95 backdrop-blur px-10 py-16 rounded-[3.8rem] flex flex-col items-center text-center">
+                            <div className="flex gap-4 mb-10 -rotate-1">
+                                <Polaroid src={images[3]} rotation="rotate-[-6deg]" size="w-40" />
+                                <Polaroid src={images[1]} rotation="rotate-[6deg]" size="w-40" />
+                            </div>
+                            <h3 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-500 mb-6 italic">Forever & Ever</h3>
+                            <p className="text-2xl text-gray-700 font-bold leading-relaxed max-w-2xl italic">
+                                "I hope I could spend every single birthday with you. You're 20 today, but I hope we're still doing these <span className="text-pink-500">silly, magical things</span> together when we're 80. Here's to 60 more years of us being icons."
+                            </p>
+                            <div className="mt-8 flex items-center gap-2 text-pink-400 font-black uppercase text-xs tracking-widest">
+                                <LucideIcon name="infinity" size={20} /> BIRTHDAYS TOGETHER
+                            </div>
+                        </div>
+                    </div>
+                  </div>
+                )}
+                
+                {activeTab === 'about' && (
+                    <div className="glass-card p-12 rounded-[4rem] shadow-2xl border-white relative animate-in zoom-in duration-700">
+                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-blue-500 text-white px-12 py-3 rounded-full font-black text-xl shadow-2xl uppercase tracking-[0.3em] z-20 whitespace-nowrap border-4 border-white">♒ Aquarius Core</div>
+                        <div className="pt-10 space-y-16 text-center">
+                            <p className="text-3xl font-black text-blue-900 italic leading-snug">"A visionary creative with a slay-worthy aesthetic."</p>
+                            
+                            <div className="flex gap-6 overflow-x-auto no-scrollbar py-10 px-6 snap-x">
+                                {images.slice(1, 7).map((img, i) => (
+                                    <div key={i} className="snap-center">
+                                        <Polaroid src={img} rotation={i%2===0 ? "rotate-[-4deg]" : "rotate-[4deg]"} size="w-56" />
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="grid gap-8 text-left">
+                                <div className="flex items-center gap-8 p-10 bg-blue-50/50 rounded-[3rem] border-2 border-blue-100 group hover:bg-white transition-all duration-500">
+                                    <div className="p-6 bg-white rounded-3xl shadow-xl text-blue-500 group-hover:scale-110 transition-transform"><LucideIcon name="palette" size={32} /></div>
+                                    <div>
+                                        <h4 className="font-black text-blue-800 uppercase text-sm tracking-widest mb-2">Creative Spirit</h4>
+                                        <p className="text-lg text-blue-900/60 font-semibold italic">Handmade cards, complex art rituals, and a designer's eye for every pixel.</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-8 p-10 bg-rose-50/50 rounded-[3rem] border-2 border-rose-100 group hover:bg-white transition-all duration-500">
+                                    <div className="p-6 bg-white rounded-3xl shadow-xl text-rose-500 group-hover:scale-110 transition-transform"><LucideIcon name="sparkles" size={32} /></div>
+                                    <div>
+                                        <h4 className="font-black text-rose-800 uppercase text-sm tracking-widest mb-2">Aesthetic Icon</h4>
+                                        <p className="text-lg text-rose-900/60 font-semibold italic">Gua sha routines, perfect mirror selfies, and a vibe that's purely magical.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {activeTab === 'gallery' && (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-10 animate-in fade-in slide-in-from-bottom-12 duration-700">
+                        {images.map((url, i) => (
+                            <div key={i} className="flex justify-center">
+                                <Polaroid 
+                                    src={url} 
+                                    rotation={`rotate-[${(i % 3 - 1) * 6}deg]`} 
+                                    size="w-full max-w-[280px]" 
+                                    caption={`Slay Era #${i+1}`} 
+                                />
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {activeTab === 'childhood' && (
+                    <div className="space-y-16 animate-in fade-in duration-1000">
+                        <div className="text-center space-y-4">
+                            <h2 className="text-6xl font-black italic text-orange-500 tracking-tighter">Little Disha Days 🕊️</h2>
+                            <p className="text-gray-400 font-black text-sm uppercase tracking-[0.4em]">The evolution of a Pretty Moonchild</p>
+                        </div>
+
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                            {kidImages.map((url, i) => (
+                                <div key={i} className="flex justify-center">
+                                    <Polaroid src={url} rotation={i%2===0 ? "rotate-[-3deg]" : "rotate-[3deg]"} size="w-full" caption="Baby Icon" />
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="bg-orange-50/60 backdrop-blur-md p-14 rounded-[4rem] border-4 border-orange-100 shadow-2xl relative overflow-hidden group">
+                            <div className="absolute -bottom-10 -right-10 opacity-5 group-hover:scale-150 group-hover:opacity-10 transition-all duration-1000 rotate-12"><LucideIcon name="heart" size={300} /></div>
+                            <h3 className="text-4xl font-black text-orange-800 mb-10 flex items-center gap-4">
+                                <LucideIcon name="message-circle-heart" size={36} className="text-orange-500" /> From the Heart
+                            </h3>
+                            <div className="grid md:grid-cols-2 gap-10 relative z-10">
+                                <div className="bg-white p-10 rounded-[3rem] border border-orange-200 shadow-xl transform transition hover:-translate-y-2 duration-500">
+                                    <p className="text-xl text-orange-900 font-bold italic leading-relaxed">
+                                        "Looking at these photos, it's crazy to think you're turning 20! You were such a tiny, adorable human, and now you've grown into this amazing woman who slays every single day."
+                                    </p>
+                                </div>
+                                <div className="bg-white p-10 rounded-[3rem] border border-orange-200 shadow-xl transform transition hover:-translate-y-2 duration-500">
+                                    <p className="text-xl text-orange-900 font-bold italic leading-relaxed">
+                                        "Happy 20th, my favorite girl! Whether you're being the 'Crazy GF' bestie or jamming to music, just know that I'm so proud of the person you've become."
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Updated Science Museum Memory */}
+                        <div className="flex justify-center p-14 bg-white/60 backdrop-blur-xl rounded-[4rem] shadow-2xl border-4 border-green-50 group hover:border-green-100 transition-colors duration-500">
+                            <div className="flex flex-col md:flex-row items-center gap-14 text-center md:text-left">
+                                <div className="shrink-0 scale-125 md:scale-150"><Polaroid src={images[6]} rotation="rotate-[-8deg]" size="w-44" caption="Core Memory" /></div>
+                                <div className="space-y-6 max-w-lg">
+                                    <h4 className="text-4xl font-black text-gray-800 italic tracking-tighter">Science Museum Days 🧪</h4>
+                                    <p className="text-2xl text-gray-500 font-bold italic leading-snug">"Every single hangout with you is a core memory. From exploring the museum to the simplest walks—it's always the highlight of my week."</p>
+                                    <div className="inline-flex items-center gap-3 bg-green-500 text-white px-6 py-2 rounded-full font-black text-xs uppercase tracking-[0.2em] shadow-lg">
+                                        <LucideIcon name="map-pin" size={14} /> Delhi Memories
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+              </main>
+
+              <footer className="py-32 text-center relative">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-transparent via-pink-200 to-transparent"></div>
+                <div className="opacity-40 space-y-4">
+                    <p className="text-xs font-black uppercase tracking-[0.8em] text-gray-600">PRETTIEST MOONCHILD</p>
+                    <p className="text-xs font-black uppercase tracking-[0.5em] text-pink-500">DISHA PANIGRAHI • CHAPTER 20</p>
+                    <div className="text-2xl">✨ 🌙 💖</div>
+                </div>
+              </footer>
+            </div>
+          );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
